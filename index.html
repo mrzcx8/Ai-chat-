@@ -3,267 +3,306 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Assistant Peribadi</title>
+    <title>AI Suara Peribadi</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            height: 100vh;
             margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            justify-content: center;
+            align-items: center;
         }
-        
+
         .container {
-            max-width: 800px;
-            width: 90%;
-            margin: 20px auto;
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        header {
-            background: linear-gradient(135deg, #6e8efb, #a777e3);
-            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
             padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             text-align: center;
         }
-        
+
         h1 {
-            margin: 0;
-            font-size: 24px;
+            color: #ffffff;
+            margin-bottom: 20px;
         }
-        
-        .chat-container {
-            flex-grow: 1;
+
+        .output-container {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
             padding: 20px;
-            overflow-y: auto;
-            max-height: 60vh;
+            margin: 20px 0;
+            min-height: 100px;
+            text-align: left;
         }
-        
-        .message {
-            padding: 10px 15px;
+
+        .instruction {
+            font-size: 0.9rem;
+            opacity: 0.8;
             margin-bottom: 10px;
-            border-radius: 18px;
-            max-width: 70%;
-            word-wrap: break-word;
         }
-        
-        .user-message {
-            background-color: #e3f2fd;
-            color: #333;
-            margin-left: auto;
-            border-bottom-right-radius: 5px;
-        }
-        
-        .ai-message {
-            background-color: #f1f0f0;
-            color: #333;
-            margin-right: auto;
-            border-bottom-left-radius: 5px;
-        }
-        
-        .input-container {
-            display: flex;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-top: 1px solid #ddd;
-        }
-        
-        #user-input {
-            flex-grow: 1;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            outline: none;
-            font-size: 16px;
-        }
-        
-        #send-button {
-            background-color: #6e8efb;
-            color: white;
+
+        button {
+            background-color: #4CAF50;
             border: none;
-            border-radius: 20px;
-            padding: 12px 20px;
-            margin-left: 10px;
-            cursor: pointer;
+            border-radius: 50px;
+            color: white;
+            padding: 12px 25px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
             font-size: 16px;
+            margin: 10px 5px;
+            cursor: pointer;
             transition: background-color 0.3s;
         }
-        
-        #send-button:hover {
-            background-color: #5a7dfa;
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .mic-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #ff4081;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px auto;
+            transition: all 0.3s;
+        }
+
+        .mic-button:hover {
+            background-color: #f50057;
+            transform: scale(1.05);
+        }
+
+        .mic-icon {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+
+        .listening {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 64, 129, 0.7);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 20px rgba(255, 64, 129, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 64, 129, 0);
+            }
+        }
+
+        .status {
+            margin-top: 10px;
+            font-style: italic;
+            color: #e0e0e0;
         }
         
-        footer {
-            text-align: center;
+        .project-section {
+            margin-top: 20px;
+            text-align: left;
             padding: 10px;
-            color: #777;
-            font-size: 14px;
-            background-color: #f9f9f9;
-            border-top: 1px solid #ddd;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
         }
         
-        @media (max-width: 600px) {
-            .container {
-                width: 95%;
-                margin: 10px auto;
-            }
-            
-            .message {
-                max-width: 85%;
-            }
+        .project-title {
+            font-weight: bold;
+            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>AI Assistant Peribadi</h1>
-        </header>
+        <h1>AI Suara Peribadi</h1>
         
-        <div class="chat-container" id="chat-container">
-            <div class="message ai-message">
-                Selamat datang! Saya adalah AI Assistant anda. Saya akan membantu bila anda bangun dan mengucapkan "hi". Saya juga boleh memberitahu masa dan hari semasa, atau projek yang anda ingin selesaikan hari ini.
-            </div>
+        <div class="instruction">Klik butang mikrofon dan beritahu saya sesuatu. Saya boleh menjawab sapaan, memberitahu masa, dan berbincang tentang projek anda.</div>
+        
+        <div class="output-container" id="outputText">
+            Selamat datang! Saya AI suara peribadi anda. Cuba katakan "Hai" atau "Pukul berapa sekarang?" atau "Apa projek kita hari ini?"
         </div>
         
-        <div class="input-container">
-            <input type="text" id="user-input" placeholder="Taip mesej anda di sini..." autocomplete="off">
-            <button id="send-button">Hantar</button>
+        <div class="mic-button" id="micButton">
+            <svg class="mic-icon" viewBox="0 0 24 24">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+        </div>
+        
+        <div class="status" id="statusText">Klik untuk mula bercakap</div>
+        
+        <div class="project-section">
+            <div class="project-title">Projek Hari Ini:</div>
+            <div id="projectText">Membuat aplikasi web AI suara interaktif</div>
         </div>
     </div>
-    
-    <footer>
-        &copy; 2025 AI Assistant Peribadi | Dihost pada GitHub Pages
-    </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const chatContainer = document.getElementById('chat-container');
-            const userInput = document.getElementById('user-input');
-            const sendButton = document.getElementById('send-button');
+        // Semak sokongan Speech Recognition
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
+        const SpeechSynthesisUtterance = window.SpeechSynthesisUtterance || window.webkitSpeechSynthesisUtterance;
+        
+        // Elemen-elemen UI
+        const micButton = document.getElementById('micButton');
+        const outputText = document.getElementById('outputText');
+        const statusText = document.getElementById('statusText');
+        const projectText = document.getElementById('projectText');
+        
+        // Projek yang ditugaskan
+        const todayProject = "Membuat aplikasi web AI suara interaktif";
+        
+        // Fungsi untuk mendapatkan masa dan tarikh semasa
+        function getCurrentTimeAndDate() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
             
-            // Simpan projek pengguna
-            let userProjects = [];
+            const daysOfWeek = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
+            const dayName = daysOfWeek[now.getDay()];
             
-            // Fungsi untuk menambah mesej ke dalam chat
-            function addMessage(message, isUser) {
-                const messageDiv = document.createElement('div');
-                messageDiv.classList.add('message');
+            const day = now.getDate();
+            const months = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
+            const month = months[now.getMonth()];
+            const year = now.getFullYear();
+            
+            return {
+                time: `${hours}:${minutes}`,
+                date: `${dayName}, ${day} ${month} ${year}`
+            };
+        }
+        
+        // Fungsi untuk menuturkan teks
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ms-MY'; // Bahasa Melayu
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+        
+        // Fungsi untuk memproses ucapan dan memberikan respons
+        function processCommand(command) {
+            command = command.toLowerCase();
+            
+            // Sapaan
+            if (command.includes('hai') || 
+                command.includes('hello') || 
+                command.includes('hi') || 
+                command.includes('selamat') || 
+                command.includes('apa khabar')) {
                 
-                if (isUser) {
-                    messageDiv.classList.add('user-message');
+                const responses = [
+                    "Hai! Apa khabar hari ini?",
+                    "Selamat sejahtera! Ada yang boleh saya bantu?",
+                    "Hai, senang berjumpa dengan anda!",
+                    "Hello! Apa yang boleh saya bantu hari ini?"
+                ];
+                const response = responses[Math.floor(Math.random() * responses.length)];
+                outputText.innerText = response;
+                speak(response);
+            }
+            
+            // Masa dan tarikh
+            else if (command.includes('masa') || 
+                    command.includes('pukul') || 
+                    command.includes('jam') || 
+                    command.includes('hari ini') ||
+                    command.includes('tarikh')) {
+                
+                const timeDate = getCurrentTimeAndDate();
+                const response = `Sekarang pukul ${timeDate.time}. Hari ini adalah ${timeDate.date}.`;
+                outputText.innerText = response;
+                speak(response);
+            }
+            
+            // Projek
+            else if (command.includes('projek') || 
+                    command.includes('tugas') || 
+                    command.includes('kerja') ||
+                    command.includes('buat hari ini')) {
+                
+                const response = `Projek kita hari ini adalah: ${todayProject}`;
+                outputText.innerText = response;
+                speak(response);
+            }
+            
+            // Jika arahan tidak dikenali
+            else {
+                const responses = [
+                    "Maaf, saya tidak memahaminya. Cuba katakan 'Hai', tanya tentang masa, atau tanya tentang projek hari ini.",
+                    "Saya tidak pasti apa yang anda maksudkan. Anda boleh bertanya tentang masa atau projek hari ini.",
+                    "Saya tidak dapat memproses permintaan itu. Cuba tanya saya tentang masa atau projek hari ini."
+                ];
+                const response = responses[Math.floor(Math.random() * responses.length)];
+                outputText.innerText = response;
+                speak(response);
+            }
+        }
+        
+        // Memeriksa sama ada peranti menyokong pengecaman ucapan
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'ms-MY';  // Bahasa Melayu
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            
+            micButton.addEventListener('click', () => {
+                if (micButton.classList.contains('listening')) {
+                    recognition.stop();
+                    micButton.classList.remove('listening');
+                    statusText.innerText = "Klik untuk mula bercakap";
                 } else {
-                    messageDiv.classList.add('ai-message');
-                }
-                
-                messageDiv.textContent = message;
-                chatContainer.appendChild(messageDiv);
-                
-                // Auto-scroll ke bawah
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }
-            
-            // Fungsi untuk memproses input pengguna
-            function processUserInput() {
-                const userMessage = userInput.value.trim();
-                
-                if (userMessage === '') return;
-                
-                // Tambah mesej pengguna ke chat
-                addMessage(userMessage, true);
-                
-                // Proses input dan berikan respons
-                let aiResponse = '';
-                
-                // Periksa mesej pengguna
-                const lowerCaseMessage = userMessage.toLowerCase();
-                
-                if (lowerCaseMessage.includes('hi') || lowerCaseMessage.includes('hello') || lowerCaseMessage.includes('hai')) {
-                    aiResponse = 'Hi! Selamat datang kembali. Apa khabar anda hari ini?';
-                } 
-                else if (lowerCaseMessage.includes('masa') || lowerCaseMessage.includes('pukul') || lowerCaseMessage.includes('jam')) {
-                    const now = new Date();
-                    const time = now.toLocaleTimeString('ms-MY');
-                    const day = new Intl.DateTimeFormat('ms-MY', { weekday: 'long' }).format(now);
-                    const date = now.toLocaleDateString('ms-MY');
-                    aiResponse = `Sekarang adalah ${day}, ${date}, pukul ${time}.`;
-                } 
-                else if (lowerCaseMessage.includes('projek') || lowerCaseMessage.includes('hari ini') || lowerCaseMessage.includes('harini')) {
-                    if (userProjects.length === 0) {
-                        aiResponse = 'Anda belum menetapkan sebarang projek untuk hari ini. Ingin tambah projek baru?';
-                    } else {
-                        aiResponse = 'Projek untuk hari ini adalah: ' + userProjects.join(', ');
-                    }
-                } 
-                else if (lowerCaseMessage.includes('tambah projek') || lowerCaseMessage.includes('projek baru')) {
-                    // Dapatkan nama projek (apa-apa yang ada selepas "tambah projek" atau "projek baru")
-                    const projectNameStart = lowerCaseMessage.includes('tambah projek') ? 
-                                            userMessage.indexOf('tambah projek') + 'tambah projek'.length :
-                                            userMessage.indexOf('projek baru') + 'projek baru'.length;
-                    
-                    let projectName = userMessage.substring(projectNameStart).trim();
-                    
-                    if (projectName) {
-                        userProjects.push(projectName);
-                        aiResponse = `Projek "${projectName}" telah ditambah kepada senarai anda.`;
-                        // Simpan ke localStorage
-                        localStorage.setItem('userProjects', JSON.stringify(userProjects));
-                    } else {
-                        aiResponse = 'Sila nyatakan nama projek untuk ditambah.';
-                    }
-                } 
-                else if (lowerCaseMessage.includes('padam projek') || lowerCaseMessage.includes('buang projek')) {
-                    aiResponse = 'Untuk membuang projek, sila nyatakan "padam: [nama projek]"';
-                } 
-                else if (lowerCaseMessage.includes('padam:')) {
-                    const projectToDelete = userMessage.substring(userMessage.indexOf('padam:') + 'padam:'.length).trim();
-                    const initialLength = userProjects.length;
-                    userProjects = userProjects.filter(project => project.toLowerCase() !== projectToDelete.toLowerCase());
-                    
-                    if (userProjects.length < initialLength) {
-                        aiResponse = `Projek "${projectToDelete}" telah dipadamkan.`;
-                        // Simpan ke localStorage
-                        localStorage.setItem('userProjects', JSON.stringify(userProjects));
-                    } else {
-                        aiResponse = `Projek "${projectToDelete}" tidak dijumpai dalam senarai.`;
-                    }
-                } 
-                else {
-                    aiResponse = 'Saya boleh memberi salam, memberitahu masa dan hari, atau menyenaraikan projek anda. Ada yang boleh saya bantu?';
-                }
-                
-                // Tambah respons AI ke chat
-                setTimeout(() => {
-                    addMessage(aiResponse, false);
-                }, 500);
-                
-                // Kosongkan input
-                userInput.value = '';
-            }
-            
-            // Event listeners
-            sendButton.addEventListener('click', processUserInput);
-            
-            userInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    processUserInput();
+                    recognition.start();
+                    micButton.classList.add('listening');
+                    statusText.innerText = "Mendengar...";
                 }
             });
             
-            // Muat projek dari localStorage jika ada
-            const savedProjects = localStorage.getItem('userProjects');
-            if (savedProjects) {
-                userProjects = JSON.parse(savedProjects);
-            }
-        });
+            recognition.onresult = (event) => {
+                const speechResult = event.results[0][0].transcript;
+                statusText.innerText = `Anda berkata: "${speechResult}"`;
+                
+                // Proses arahan
+                processCommand(speechResult);
+                
+                micButton.classList.remove('listening');
+                setTimeout(() => {
+                    statusText.innerText = "Klik untuk mula bercakap";
+                }, 3000);
+            };
+            
+            recognition.onend = () => {
+                micButton.classList.remove('listening');
+            };
+            
+            recognition.onerror = (event) => {
+                statusText.innerText = `Ralat: ${event.error}`;
+                micButton.classList.remove('listening');
+            };
+        } else {
+            statusText.innerText = "Maaf, penyemak imbas anda tidak menyokong pengecaman ucapan.";
+            micButton.disabled = true;
+            micButton.style.backgroundColor = "#cccccc";
+        }
     </script>
 </body>
 </html>
