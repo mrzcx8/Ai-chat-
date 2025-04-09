@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Bercakap</title>
+</head>
+<body>
+    <h1>Selamat datang ke AI Bercakap!</h1>
+    <button onclick="startRecognition()">Mulakan Perbualan</button>
+    <p id="response">Menunggu arahan...</p>
+
+    <script>
+        // Fungsi untuk mulakan Speech Recognition
+        function startRecognition() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'ms-MY'; // Setkan bahasa Malaysia
+            recognition.start();
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('response').textContent = 'Anda cakap: ' + transcript;
+                processQuery(transcript);
+            };
+
+            recognition.onerror = function(event) {
+                document.getElementById('response').textContent = 'Ralat dalam mendengar suara.';
+            };
+        }
+
+        // Fungsi untuk proses jawapan dari AI
+        function processQuery(query) {
+            let response = '';
+
+            // Periksa apa yang pengguna tanya
+            if (query.includes("Hi")) {
+                response = 'Hai! Selamat pagi.';
+            } else if (query.includes("pukul berapa")) {
+                const now = new Date();
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                const day = now.toLocaleDateString('ms-MY', { weekday: 'long' });
+                response = `Sekarang pukul ${hours}:${minutes < 10 ? '0' + minutes : minutes}, hari ${day}.`;
+            } else if (query.includes("projek")) {
+                response = 'Projek kita hari ini adalah siapkan rekaan laman web.';
+            } else {
+                response = 'Maaf, saya tidak faham. Sila cuba lagi.';
+            }
+
+            // Sebut jawapan dengan suara (Text-to-Speech)
+            speak(response);
+        }
+
+        // Fungsi untuk AI bercakap (Text-to-Speech)
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ms-MY'; // Bahasa Malaysia
+            speechSynthesis.speak(utterance);
+        }
+    </script>
+</body>
+</html>
