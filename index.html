@@ -78,6 +78,7 @@
             align-items: center;
             margin: 20px auto;
             transition: all 0.3s;
+            cursor: pointer;
         }
 
         .mic-button:hover {
@@ -93,6 +94,7 @@
 
         .listening {
             animation: pulse 1.5s infinite;
+            background-color: #f50057;
         }
 
         @keyframes pulse {
@@ -128,6 +130,16 @@
             font-weight: bold;
             margin-bottom: 5px;
         }
+        
+        .debug-info {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #e0e0e0;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 5px;
+            border-radius: 5px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -153,19 +165,44 @@
             <div class="project-title">Projek Hari Ini:</div>
             <div id="projectText">Membuat aplikasi web AI suara interaktif</div>
         </div>
+        
+        <div class="debug-info" id="debugInfo"></div>
+        
+        <button id="testSpeechButton">Uji Ucapan</button>
     </div>
 
     <script>
-        // Semak sokongan Speech Recognition
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
-        const SpeechSynthesisUtterance = window.SpeechSynthesisUtterance || window.webkitSpeechSynthesisUtterance;
-        
         // Elemen-elemen UI
         const micButton = document.getElementById('micButton');
         const outputText = document.getElementById('outputText');
         const statusText = document.getElementById('statusText');
         const projectText = document.getElementById('projectText');
+        const debugInfo = document.getElementById('debugInfo');
+        const testSpeechButton = document.getElementById('testSpeechButton');
+        
+        // Fungsi untuk menambah info debug ke antara muka
+        function addDebugInfo(info) {
+            debugInfo.style.display = 'block';
+            debugInfo.textContent += info + '\n';
+        }
+        
+        // Semak sokongan Speech API
+        let speechRecognitionSupported = false;
+        let speechSynthesisSupported = false;
+        
+        if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+            speechRecognitionSupported = true;
+            addDebugInfo("✓ Speech Recognition disokong");
+        } else {
+            addDebugInfo("✗ Speech Recognition TIDAK disokong");
+        }
+        
+        if ('speechSynthesis' in window) {
+            speechSynthesisSupported = true;
+            addDebugInfo("✓ Speech Synthesis disokong");
+        } else {
+            addDebugInfo("✗ Speech Synthesis TIDAK disokong");
+        }
         
         // Projek yang ditugaskan
         const todayProject = "Membuat aplikasi web AI suara interaktif";
@@ -192,16 +229,49 @@
         
         // Fungsi untuk menuturkan teks
         function speak(text) {
-            if ('speechSynthesis' in window) {
+            if (speechSynthesisSupported) {
+                // Hentikan ucapan semasa jika ada
+                window.speechSynthesis.cancel();
+                
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'ms-MY'; // Bahasa Melayu
+                
+                // Cuba gunakan suara dalam bahasa Melayu jika ada
+                const voices = window.speechSynthesis.getVoices();
+                const malayVoice = voices.find(voice => voice.lang.includes('ms') || voice.lang.includes('id'));
+                
+                if (malayVoice) {
+                    utterance.voice = malayVoice;
+                    utterance.lang = malayVoice.lang;
+                } else {
+                    // Jika tiada suara Melayu, cuba bahasa Inggeris
+                    utterance.lang = 'en-US';
+                }
+                
+                // Tambah handler untuk mengesan masalah
+                utterance.onerror = (event) => {
+                    addDebugInfo(`Ralat ucapan: ${event.error}`);
+                };
+                
+                utterance.onstart = () => {
+                    addDebugInfo("Bermula bercakap");
+                };
+                
+                utterance.onend = () => {
+                    addDebugInfo("Selesai bercakap");
+                };
+                
                 window.speechSynthesis.speak(utterance);
+            } else {
+                // Jika ucapan tidak disokong, hanya paparkan teks
+                outputText.innerText = text;
+                addDebugInfo("Speech synthesis tidak disokong");
             }
         }
         
         // Fungsi untuk memproses ucapan dan memberikan respons
         function processCommand(command) {
             command = command.toLowerCase();
+            addDebugInfo(`Memproses arahan: "${command}"`);
             
             // Sapaan
             if (command.includes('hai') || 
@@ -258,10 +328,19 @@
             }
         }
         
+        // Butang ujian ucapan
+        testSpeechButton.addEventListener('click', () => {
+            speak("Ini adalah ujian suara. Jika anda boleh mendengar ini, bermakna sistem ucapan berfungsi dengan baik.");
+        });
+        
         // Memeriksa sama ada peranti menyokong pengecaman ucapan
-        if (SpeechRecognition) {
+        if (speechRecognitionSupported) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             const recognition = new SpeechRecognition();
-            recognition.lang = 'ms-MY';  // Bahasa Melayu
+            
+            // Cuba gunakan pelbagai bahasa untuk meningkatkan kebolehpercayaan
+            recognition.lang = 'ms-MY';  // Bahasa Melayu - Malaysia
+            recognition.continuous = false;
             recognition.interimResults = false;
             recognition.maxAlternatives = 1;
             
@@ -270,16 +349,24 @@
                     recognition.stop();
                     micButton.classList.remove('listening');
                     statusText.innerText = "Klik untuk mula bercakap";
+                    addDebugInfo("Pembacaan ucapan dihentikan");
                 } else {
-                    recognition.start();
-                    micButton.classList.add('listening');
-                    statusText.innerText = "Mendengar...";
+                    try {
+                        recognition.start();
+                        micButton.classList.add('listening');
+                        statusText.innerText = "Mendengar...";
+                        addDebugInfo("Pembacaan ucapan dimulakan");
+                    } catch (err) {
+                        addDebugInfo(`Ralat memulakan pembacaan: ${err.message}`);
+                        statusText.innerText = "Ralat memulakan pembacaan";
+                    }
                 }
             });
             
             recognition.onresult = (event) => {
                 const speechResult = event.results[0][0].transcript;
                 statusText.innerText = `Anda berkata: "${speechResult}"`;
+                addDebugInfo(`Ucapan dikesan: "${speechResult}"`);
                 
                 // Proses arahan
                 processCommand(speechResult);
@@ -292,17 +379,64 @@
             
             recognition.onend = () => {
                 micButton.classList.remove('listening');
+                addDebugInfo("Sesi pembacaan ucapan berakhir");
             };
             
             recognition.onerror = (event) => {
                 statusText.innerText = `Ralat: ${event.error}`;
+                addDebugInfo(`Ralat pembacaan ucapan: ${event.error}`);
                 micButton.classList.remove('listening');
             };
+            
+            recognition.onnomatch = () => {
+                statusText.innerText = "Tiada ucapan dikesan";
+                addDebugInfo("Tiada ucapan yang sepadan dikesan");
+                micButton.classList.remove('listening');
+            };
+            
+            // Simpan untuk mudah diakses
+            window.recognition = recognition;
+            
+            // Cuba dapatkan kebenaran mikrofon dari awal
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function(stream) {
+                    addDebugInfo("✓ Kebenaran mikrofon diberikan");
+                    stream.getTracks().forEach(track => track.stop());
+                })
+                .catch(function(err) {
+                    addDebugInfo(`✗ Kebenaran mikrofon ditolak: ${err.message}`);
+                });
+                
         } else {
             statusText.innerText = "Maaf, penyemak imbas anda tidak menyokong pengecaman ucapan.";
-            micButton.disabled = true;
             micButton.style.backgroundColor = "#cccccc";
+            micButton.style.cursor = "not-allowed";
+            testSpeechButton.disabled = false;
         }
+        
+        // Aktifkan debug mode untuk pembangunan
+        debugInfo.style.display = 'block';
+        
+        // Muat senarai suara yang tersedia
+        window.speechSynthesis.onvoiceschanged = () => {
+            const voices = window.speechSynthesis.getVoices();
+            addDebugInfo(`Jumlah suara tersedia: ${voices.length}`);
+            
+            // Cari suara Melayu jika ada
+            const malayVoice = voices.find(voice => voice.lang.includes('ms') || voice.lang.includes('id'));
+            if (malayVoice) {
+                addDebugInfo(`Suara Melayu dijumpai: ${malayVoice.name} (${malayVoice.lang})`);
+            } else {
+                addDebugInfo("Tiada suara Melayu dijumpai");
+            }
+        };
+        
+        // Uji ucapan setelah laman dimuat
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                speak("Sistem AI suara sudah sedia. Sila klik butang mikrofon untuk bercakap dengan saya.");
+            }, 1000);
+        });
     </script>
 </body>
 </html>
