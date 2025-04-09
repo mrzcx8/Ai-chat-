@@ -3,440 +3,603 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Suara Peribadi</title>
+    <title>Pencatat Transaksi</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: #fff;
-            height: 100vh;
+        * {
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
         .container {
-            background-color: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
+            max-width: 800px;
+            margin: 0 auto;
             padding: 20px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            text-align: center;
         }
-
-        h1 {
-            color: #ffffff;
+        
+        header {
+            background-color: #2196F3;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
             margin-bottom: 20px;
         }
-
-        .output-container {
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-            min-height: 100px;
-            text-align: left;
+        
+        h1, h2, h3 {
+            margin-bottom: 1rem;
         }
-
-        .instruction {
-            font-size: 0.9rem;
-            opacity: 0.8;
+        
+        .btn {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
             margin-bottom: 10px;
         }
-
-        button {
+        
+        .btn:hover {
+            background-color: #0b7dda;
+        }
+        
+        .btn-red {
+            background-color: #f44336;
+        }
+        
+        .btn-red:hover {
+            background-color: #d32f2f;
+        }
+        
+        .btn-green {
             background-color: #4CAF50;
-            border: none;
-            border-radius: 50px;
-            color: white;
-            padding: 12px 25px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
+        }
+        
+        .btn-green:hover {
+            background-color: #388E3C;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
             font-size: 16px;
-            margin: 10px 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
             cursor: pointer;
-            transition: background-color 0.3s;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 16px;
         }
-
-        button:hover {
-            background-color: #45a049;
+        
+        .tab button:hover {
+            background-color: #ddd;
         }
-
-        .mic-button {
-            width: 80px;
-            height: 80px;
+        
+        .tab button.active {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .tabcontent {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            background-color: white;
+        }
+        
+        #receiptPreview {
+            max-width: 100%;
+            margin-top: 10px;
+        }
+        
+        .voice-indicator {
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
-            background-color: #ff4081;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 20px auto;
-            transition: all 0.3s;
-            cursor: pointer;
+            background-color: red;
+            display: inline-block;
+            margin-left: 10px;
+            vertical-align: middle;
         }
-
-        .mic-button:hover {
-            background-color: #f50057;
-            transform: scale(1.05);
-        }
-
-        .mic-icon {
-            width: 40px;
-            height: 40px;
-            fill: white;
-        }
-
-        .listening {
+        
+        .voice-indicator.active {
+            background-color: #4CAF50;
             animation: pulse 1.5s infinite;
-            background-color: #f50057;
         }
-
+        
         @keyframes pulse {
             0% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(255, 64, 129, 0.7);
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
             }
+            
             70% {
-                transform: scale(1.05);
-                box-shadow: 0 0 0 20px rgba(255, 64, 129, 0);
-            }
-            100% {
                 transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(255, 64, 129, 0);
+                box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+            }
+            
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
             }
         }
-
-        .status {
-            margin-top: 10px;
-            font-style: italic;
-            color: #e0e0e0;
-        }
         
-        .project-section {
-            margin-top: 20px;
-            text-align: left;
-            padding: 10px;
-            background-color: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-        }
-        
-        .project-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .debug-info {
-            margin-top: 10px;
-            font-size: 0.8rem;
-            color: #e0e0e0;
-            background-color: rgba(0, 0, 0, 0.2);
-            padding: 5px;
-            border-radius: 5px;
-            display: none;
+        @media (max-width: 600px) {
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>AI Suara Peribadi</h1>
+        <header>
+            <h1>Pencatat Transaksi</h1>
+        </header>
         
-        <div class="instruction">Klik butang mikrofon dan beritahu saya sesuatu. Saya boleh menjawab sapaan, memberitahu masa, dan berbincang tentang projek anda.</div>
-        
-        <div class="output-container" id="outputText">
-            Selamat datang! Saya AI suara peribadi anda. Cuba katakan "Hai" atau "Pukul berapa sekarang?" atau "Apa projek kita hari ini?"
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'Input')">Input Transaksi</button>
+            <button class="tablinks" onclick="openTab(event, 'Scan')">Imbas Resit</button>
+            <button class="tablinks" onclick="openTab(event, 'Records')">Rekod</button>
         </div>
         
-        <div class="mic-button" id="micButton">
-            <svg class="mic-icon" viewBox="0 0 24 24">
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-            </svg>
+        <div id="Input" class="tabcontent" style="display: block;">
+            <div class="card">
+                <h2>Tambah Transaksi Baru</h2>
+                <input type="text" id="description" placeholder="Keterangan (contoh: Topup RM5)">
+                <input type="number" id="amount" placeholder="Jumlah (RM)">
+                <select id="type">
+                    <option value="expense">Perbelanjaan</option>
+                    <option value="income">Pendapatan</option>
+                </select>
+                <button class="btn btn-green" onclick="addTransaction()">Simpan</button>
+                <button class="btn" onclick="startVoiceRecognition()">
+                    Input Suara <span id="voiceIndicator" class="voice-indicator"></span>
+                </button>
+            </div>
         </div>
         
-        <div class="status" id="statusText">Klik untuk mula bercakap</div>
-        
-        <div class="project-section">
-            <div class="project-title">Projek Hari Ini:</div>
-            <div id="projectText">Membuat aplikasi web AI suara interaktif</div>
+        <div id="Scan" class="tabcontent">
+            <div class="card">
+                <h2>Imbas Resit</h2>
+                <input type="file" id="receiptUpload" accept="image/*" capture="camera">
+                <button class="btn" onclick="scanReceipt()">Proses Resit</button>
+                <div>
+                    <img id="receiptPreview" style="display: none;">
+                    <p id="scanResult"></p>
+                </div>
+            </div>
         </div>
         
-        <div class="debug-info" id="debugInfo"></div>
-        
-        <button id="testSpeechButton">Uji Ucapan</button>
+        <div id="Records" class="tabcontent">
+            <div class="card">
+                <h2>Rekod Transaksi</h2>
+                <button class="btn" onclick="exportPDF()">Eksport PDF</button>
+                <button class="btn btn-red" onclick="clearTransactions()">Padam Semua</button>
+                <div id="transactionList">
+                    <table id="transactionTable">
+                        <thead>
+                            <tr>
+                                <th>Tarikh</th>
+                                <th>Keterangan</th>
+                                <th>Jumlah (RM)</th>
+                                <th>Jenis</th>
+                                <th>Tindakan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Elemen-elemen UI
-        const micButton = document.getElementById('micButton');
-        const outputText = document.getElementById('outputText');
-        const statusText = document.getElementById('statusText');
-        const projectText = document.getElementById('projectText');
-        const debugInfo = document.getElementById('debugInfo');
-        const testSpeechButton = document.getElementById('testSpeechButton');
+        // Data structure
+        let transactions = [];
         
-        // Fungsi untuk menambah info debug ke antara muka
-        function addDebugInfo(info) {
-            debugInfo.style.display = 'block';
-            debugInfo.textContent += info + '\n';
-        }
-        
-        // Semak sokongan Speech API
-        let speechRecognitionSupported = false;
-        let speechSynthesisSupported = false;
-        
-        if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-            speechRecognitionSupported = true;
-            addDebugInfo("✓ Speech Recognition disokong");
-        } else {
-            addDebugInfo("✗ Speech Recognition TIDAK disokong");
-        }
-        
-        if ('speechSynthesis' in window) {
-            speechSynthesisSupported = true;
-            addDebugInfo("✓ Speech Synthesis disokong");
-        } else {
-            addDebugInfo("✗ Speech Synthesis TIDAK disokong");
-        }
-        
-        // Projek yang ditugaskan
-        const todayProject = "Membuat aplikasi web AI suara interaktif";
-        
-        // Fungsi untuk mendapatkan masa dan tarikh semasa
-        function getCurrentTimeAndDate() {
-            const now = new Date();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
+        // Initialize
+        window.onload = function() {
+            loadTransactions();
+            displayTransactions();
             
-            const daysOfWeek = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
-            const dayName = daysOfWeek[now.getDay()];
-            
-            const day = now.getDate();
-            const months = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
-            const month = months[now.getMonth()];
-            const year = now.getFullYear();
-            
-            return {
-                time: `${hours}:${minutes}`,
-                date: `${dayName}, ${day} ${month} ${year}`
-            };
-        }
-        
-        // Fungsi untuk menuturkan teks
-        function speak(text) {
-            if (speechSynthesisSupported) {
-                // Hentikan ucapan semasa jika ada
-                window.speechSynthesis.cancel();
-                
-                const utterance = new SpeechSynthesisUtterance(text);
-                
-                // Cuba gunakan suara dalam bahasa Melayu jika ada
-                const voices = window.speechSynthesis.getVoices();
-                const malayVoice = voices.find(voice => voice.lang.includes('ms') || voice.lang.includes('id'));
-                
-                if (malayVoice) {
-                    utterance.voice = malayVoice;
-                    utterance.lang = malayVoice.lang;
-                } else {
-                    // Jika tiada suara Melayu, cuba bahasa Inggeris
-                    utterance.lang = 'en-US';
+            // Set up file input listener
+            document.getElementById('receiptUpload').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const img = document.getElementById('receiptPreview');
+                        img.src = event.target.result;
+                        img.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
                 }
-                
-                // Tambah handler untuk mengesan masalah
-                utterance.onerror = (event) => {
-                    addDebugInfo(`Ralat ucapan: ${event.error}`);
-                };
-                
-                utterance.onstart = () => {
-                    addDebugInfo("Bermula bercakap");
-                };
-                
-                utterance.onend = () => {
-                    addDebugInfo("Selesai bercakap");
-                };
-                
-                window.speechSynthesis.speak(utterance);
-            } else {
-                // Jika ucapan tidak disokong, hanya paparkan teks
-                outputText.innerText = text;
-                addDebugInfo("Speech synthesis tidak disokong");
+            });
+        };
+        
+        // Tab Navigation
+        function openTab(evt, tabName) {
+            const tabcontent = document.getElementsByClassName("tabcontent");
+            for (let i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            
+            const tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+        
+        // Save transaction to localStorage
+        function saveTransactions() {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+        }
+        
+        // Load transactions from localStorage
+        function loadTransactions() {
+            const storedTransactions = localStorage.getItem('transactions');
+            if (storedTransactions) {
+                transactions = JSON.parse(storedTransactions);
             }
         }
         
-        // Fungsi untuk memproses ucapan dan memberikan respons
-        function processCommand(command) {
-            command = command.toLowerCase();
-            addDebugInfo(`Memproses arahan: "${command}"`);
+        // Display transactions in the table
+        function displayTransactions() {
+            const tbody = document.getElementById('transactionTableBody');
+            tbody.innerHTML = '';
             
-            // Sapaan
-            if (command.includes('hai') || 
-                command.includes('hello') || 
-                command.includes('hi') || 
-                command.includes('selamat') || 
-                command.includes('apa khabar')) {
-                
-                const responses = [
-                    "Hai! Apa khabar hari ini?",
-                    "Selamat sejahtera! Ada yang boleh saya bantu?",
-                    "Hai, senang berjumpa dengan anda!",
-                    "Hello! Apa yang boleh saya bantu hari ini?"
-                ];
-                const response = responses[Math.floor(Math.random() * responses.length)];
-                outputText.innerText = response;
-                speak(response);
+            if (transactions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Tiada rekod transaksi</td></tr>';
+                return;
             }
             
-            // Masa dan tarikh
-            else if (command.includes('masa') || 
-                    command.includes('pukul') || 
-                    command.includes('jam') || 
-                    command.includes('hari ini') ||
-                    command.includes('tarikh')) {
+            // Sort transactions by date (newest first)
+            transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            transactions.forEach((transaction, index) => {
+                const row = document.createElement('tr');
                 
-                const timeDate = getCurrentTimeAndDate();
-                const response = `Sekarang pukul ${timeDate.time}. Hari ini adalah ${timeDate.date}.`;
-                outputText.innerText = response;
-                speak(response);
+                const dateCell = document.createElement('td');
+                dateCell.textContent = new Date(transaction.date).toLocaleDateString('ms-MY');
+                
+                const descCell = document.createElement('td');
+                descCell.textContent = transaction.description;
+                
+                const amountCell = document.createElement('td');
+                amountCell.textContent = transaction.amount.toFixed(2);
+                
+                const typeCell = document.createElement('td');
+                typeCell.textContent = transaction.type === 'expense' ? 'Perbelanjaan' : 'Pendapatan';
+                
+                const actionCell = document.createElement('td');
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Padam';
+                deleteBtn.className = 'btn btn-red';
+                deleteBtn.style.margin = '0';
+                deleteBtn.style.padding = '5px 10px';
+                deleteBtn.onclick = function() {
+                    deleteTransaction(index);
+                };
+                actionCell.appendChild(deleteBtn);
+                
+                row.appendChild(dateCell);
+                row.appendChild(descCell);
+                row.appendChild(amountCell);
+                row.appendChild(typeCell);
+                row.appendChild(actionCell);
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Add a new transaction
+        function addTransaction() {
+            const description = document.getElementById('description').value.trim();
+            const amountStr = document.getElementById('amount').value.trim();
+            const type = document.getElementById('type').value;
+            
+            if (!description || !amountStr) {
+                alert('Sila isi semua maklumat');
+                return;
             }
             
-            // Projek
-            else if (command.includes('projek') || 
-                    command.includes('tugas') || 
-                    command.includes('kerja') ||
-                    command.includes('buat hari ini')) {
-                
-                const response = `Projek kita hari ini adalah: ${todayProject}`;
-                outputText.innerText = response;
-                speak(response);
+            const amount = parseFloat(amountStr);
+            
+            if (isNaN(amount) || amount <= 0) {
+                alert('Sila masukkan jumlah yang sah');
+                return;
             }
             
-            // Jika arahan tidak dikenali
-            else {
-                const responses = [
-                    "Maaf, saya tidak memahaminya. Cuba katakan 'Hai', tanya tentang masa, atau tanya tentang projek hari ini.",
-                    "Saya tidak pasti apa yang anda maksudkan. Anda boleh bertanya tentang masa atau projek hari ini.",
-                    "Saya tidak dapat memproses permintaan itu. Cuba tanya saya tentang masa atau projek hari ini."
-                ];
-                const response = responses[Math.floor(Math.random() * responses.length)];
-                outputText.innerText = response;
-                speak(response);
+            const transaction = {
+                description: description,
+                amount: amount,
+                type: type,
+                date: new Date().toISOString()
+            };
+            
+            transactions.push(transaction);
+            saveTransactions();
+            displayTransactions();
+            
+            // Reset form
+            document.getElementById('description').value = '';
+            document.getElementById('amount').value = '';
+            
+            // Show confirmation
+            alert(`Transaksi "${description}" berjumlah RM${amount.toFixed(2)} telah dicatatkan!`);
+        }
+        
+        // Delete a transaction
+        function deleteTransaction(index) {
+            if (confirm('Adakah anda pasti untuk memadamkan rekod ini?')) {
+                transactions.splice(index, 1);
+                saveTransactions();
+                displayTransactions();
             }
         }
         
-        // Butang ujian ucapan
-        testSpeechButton.addEventListener('click', () => {
-            speak("Ini adalah ujian suara. Jika anda boleh mendengar ini, bermakna sistem ucapan berfungsi dengan baik.");
-        });
+        // Clear all transactions
+        function clearTransactions() {
+            if (confirm('Adakah anda pasti untuk memadamkan SEMUA rekod?')) {
+                transactions = [];
+                saveTransactions();
+                displayTransactions();
+            }
+        }
         
-        // Memeriksa sama ada peranti menyokong pengecaman ucapan
-        if (speechRecognitionSupported) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
+        // Export to PDF
+        function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
             
-            // Cuba gunakan pelbagai bahasa untuk meningkatkan kebolehpercayaan
-            recognition.lang = 'ms-MY';  // Bahasa Melayu - Malaysia
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
+            // Add title
+            doc.setFontSize(18);
+            doc.text('Rekod Transaksi', 105, 15, { align: 'center' });
             
-            micButton.addEventListener('click', () => {
-                if (micButton.classList.contains('listening')) {
-                    recognition.stop();
-                    micButton.classList.remove('listening');
-                    statusText.innerText = "Klik untuk mula bercakap";
-                    addDebugInfo("Pembacaan ucapan dihentikan");
+            // Add date
+            doc.setFontSize(12);
+            doc.text(`Dicetak pada: ${new Date().toLocaleDateString('ms-MY')}`, 105, 25, { align: 'center' });
+            
+            // If no transactions
+            if (transactions.length === 0) {
+                doc.text('Tiada rekod transaksi', 105, 40, { align: 'center' });
+                doc.save('rekod-transaksi.pdf');
+                return;
+            }
+            
+            // Calculate totals
+            let totalIncome = 0;
+            let totalExpense = 0;
+            
+            transactions.forEach(transaction => {
+                if (transaction.type === 'income') {
+                    totalIncome += transaction.amount;
                 } else {
-                    try {
-                        recognition.start();
-                        micButton.classList.add('listening');
-                        statusText.innerText = "Mendengar...";
-                        addDebugInfo("Pembacaan ucapan dimulakan");
-                    } catch (err) {
-                        addDebugInfo(`Ralat memulakan pembacaan: ${err.message}`);
-                        statusText.innerText = "Ralat memulakan pembacaan";
-                    }
+                    totalExpense += transaction.amount;
                 }
             });
             
-            recognition.onresult = (event) => {
-                const speechResult = event.results[0][0].transcript;
-                statusText.innerText = `Anda berkata: "${speechResult}"`;
-                addDebugInfo(`Ucapan dikesan: "${speechResult}"`);
-                
-                // Proses arahan
-                processCommand(speechResult);
-                
-                micButton.classList.remove('listening');
-                setTimeout(() => {
-                    statusText.innerText = "Klik untuk mula bercakap";
-                }, 3000);
-            };
+            // Add summary
+            doc.text(`Jumlah Pendapatan: RM${totalIncome.toFixed(2)}`, 14, 35);
+            doc.text(`Jumlah Perbelanjaan: RM${totalExpense.toFixed(2)}`, 14, 45);
+            doc.text(`Baki: RM${(totalIncome - totalExpense).toFixed(2)}`, 14, 55);
             
-            recognition.onend = () => {
-                micButton.classList.remove('listening');
-                addDebugInfo("Sesi pembacaan ucapan berakhir");
-            };
+            // Sort transactions by date (newest first)
+            const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
             
-            recognition.onerror = (event) => {
-                statusText.innerText = `Ralat: ${event.error}`;
-                addDebugInfo(`Ralat pembacaan ucapan: ${event.error}`);
-                micButton.classList.remove('listening');
-            };
+            // Table headers
+            const headers = [['Tarikh', 'Keterangan', 'Jumlah (RM)', 'Jenis']];
             
-            recognition.onnomatch = () => {
-                statusText.innerText = "Tiada ucapan dikesan";
-                addDebugInfo("Tiada ucapan yang sepadan dikesan");
-                micButton.classList.remove('listening');
-            };
+            // Table data
+            const data = sortedTransactions.map(transaction => [
+                new Date(transaction.date).toLocaleDateString('ms-MY'),
+                transaction.description,
+                transaction.amount.toFixed(2),
+                transaction.type === 'expense' ? 'Perbelanjaan' : 'Pendapatan'
+            ]);
             
-            // Simpan untuk mudah diakses
-            window.recognition = recognition;
+            // Create table
+            doc.autoTable({
+                startY: 65,
+                head: headers,
+                body: data,
+                theme: 'striped',
+                styles: { fontSize: 10, cellPadding: 3 },
+                headStyles: { fillColor: [33, 150, 243] }
+            });
             
-            // Cuba dapatkan kebenaran mikrofon dari awal
-            navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(function(stream) {
-                    addDebugInfo("✓ Kebenaran mikrofon diberikan");
-                    stream.getTracks().forEach(track => track.stop());
-                })
-                .catch(function(err) {
-                    addDebugInfo(`✗ Kebenaran mikrofon ditolak: ${err.message}`);
-                });
-                
-        } else {
-            statusText.innerText = "Maaf, penyemak imbas anda tidak menyokong pengecaman ucapan.";
-            micButton.style.backgroundColor = "#cccccc";
-            micButton.style.cursor = "not-allowed";
-            testSpeechButton.disabled = false;
+            // Save the PDF
+            doc.save('rekod-transaksi.pdf');
         }
         
-        // Aktifkan debug mode untuk pembangunan
-        debugInfo.style.display = 'block';
-        
-        // Muat senarai suara yang tersedia
-        window.speechSynthesis.onvoiceschanged = () => {
-            const voices = window.speechSynthesis.getVoices();
-            addDebugInfo(`Jumlah suara tersedia: ${voices.length}`);
+        // Scan receipt with Tesseract.js
+        async function scanReceipt() {
+            const img = document.getElementById('receiptPreview');
             
-            // Cari suara Melayu jika ada
-            const malayVoice = voices.find(voice => voice.lang.includes('ms') || voice.lang.includes('id'));
-            if (malayVoice) {
-                addDebugInfo(`Suara Melayu dijumpai: ${malayVoice.name} (${malayVoice.lang})`);
-            } else {
-                addDebugInfo("Tiada suara Melayu dijumpai");
+            if (img.src === '' || img.style.display === 'none') {
+                alert('Sila pilih imej resit terlebih dahulu');
+                return;
             }
-        };
+            
+            const resultElement = document.getElementById('scanResult');
+            resultElement.textContent = 'Memproses imej... Sila tunggu.';
+            
+            try {
+                const worker = await Tesseract.createWorker('eng');
+                const result = await worker.recognize(img.src);
+                const text = result.data.text;
+                
+                await worker.terminate();
+                
+                // Process the text to extract transaction details
+                processReceiptText(text);
+                
+            } catch (error) {
+                resultElement.textContent = 'Ralat semasa memproses imej: ' + error.message;
+            }
+        }
         
-        // Uji ucapan setelah laman dimuat
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                speak("Sistem AI suara sudah sedia. Sila klik butang mikrofon untuk bercakap dengan saya.");
-            }, 1000);
-        });
+        // Process extracted text from receipt
+        function processReceiptText(text) {
+            const resultElement = document.getElementById('scanResult');
+            resultElement.textContent = 'Teks dikesan:\n' + text;
+            
+            // Try to extract amount
+            const amountRegex = /(?:RM|rm|rm\s|\$)?(\d+[.,]\d{2})/gi;
+            const amountMatches = [...text.matchAll(amountRegex)];
+            
+            if (amountMatches.length > 0) {
+                // Find the most likely amount (usually the largest or the last one)
+                let highestAmount = 0;
+                amountMatches.forEach(match => {
+                    const amount = parseFloat(match[1].replace(',', '.'));
+                    if (amount > highestAmount) {
+                        highestAmount = amount;
+                    }
+                });
+                
+                // Populate the form with extracted data
+                document.getElementById('amount').value = highestAmount;
+                document.getElementById('type').value = 'expense'; // Assume it's an expense
+                
+                // Auto-switch to the input tab
+                const tabButtons = document.getElementsByClassName('tablinks');
+                for (let i = 0; i < tabButtons.length; i++) {
+                    tabButtons[i].classList.remove('active');
+                }
+                document.getElementById('Scan').style.display = 'none';
+                document.getElementById('Input').style.display = 'block';
+                tabButtons[0].classList.add('active');
+                
+                // Focus on the description field
+                document.getElementById('description').focus();
+            } else {
+                resultElement.textContent += '\n\nTiada jumlah yang dapat dikesan. Sila tambah transaksi secara manual.';
+            }
+        }
+        
+        // Voice recognition for transaction input
+        function startVoiceRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                alert('Maaf, pelayar anda tidak menyokong pengecaman suara');
+                return;
+            }
+            
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'ms-MY';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            
+            const indicator = document.getElementById('voiceIndicator');
+            indicator.classList.add('active');
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                processVoiceInput(transcript);
+            };
+            
+            recognition.onerror = function(event) {
+                indicator.classList.remove('active');
+                alert('Ralat pengecaman suara: ' + event.error);
+            };
+            
+            recognition.onend = function() {
+                indicator.classList.remove('active');
+            };
+            
+            recognition.start();
+        }
+        
+        // Process voice input to extract transaction details
+        function processVoiceInput(transcript) {
+            console.log('Teks diterim: ' + transcript);
+            
+            // Look for amount patterns (e.g., "RM50", "50 ringgit")
+            const amountRegex = /(?:RM|rm|ringgit)\s*(\d+)/i;
+            const amountMatch = transcript.match(amountRegex);
+            
+            let amount = 0;
+            if (amountMatch && amountMatch[1]) {
+                amount = parseFloat(amountMatch[1]);
+            }
+            
+            // Determine transaction type based on keywords
+            let type = 'expense'; // default to expense
+            if (transcript.includes('terima') || transcript.includes('pendapatan') || 
+                transcript.includes('masuk') || transcript.includes('dapat')) {
+                type = 'income';
+            }
+            
+            // Set the values in the form
+            document.getElementById('description').value = transcript;
+            if (amount > 0) {
+                document.getElementById('amount').value = amount;
+            }
+            document.getElementById('type').value = type;
+            
+            // Show confirmation
+            alert('Input suara diterima: "' + transcript + '"');
+        }
     </script>
 </body>
 </html>
