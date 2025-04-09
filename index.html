@@ -45,7 +45,14 @@
         function speak(text) {
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'ms-MY'; // Bahasa Malaysia
-            speechSynthesis.speak(utterance);
+            console.log("AI bercakap:", text);  // Log untuk pastikan fungsi dipanggil
+
+            // Periksa jika browser menyokong speech synthesis
+            if (speechSynthesis.speaking) {
+                console.log("Sedang bercakap, tunggu sebentar...");
+            } else {
+                speechSynthesis.speak(utterance);
+            }
         }
     </script>
 </body>
