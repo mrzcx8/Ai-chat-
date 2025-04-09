@@ -7,60 +7,42 @@
 </head>
 <body>
     <h1>Selamat datang ke AI Bercakap!</h1>
-    <button onclick="startRecognition()">Mulakan Perbualan</button>
+    
+    <!-- Butang untuk setiap aksi -->
+    <button onclick="sayHi()">Hi AI</button>
+    <button onclick="getTime()">Masa Sekarang</button>
+    <button onclick="getProject()">Projek Apa Harini?</button>
+
     <p id="response">Menunggu arahan...</p>
 
     <script>
-        // Fungsi untuk mulakan Speech Recognition
-        function startRecognition() {
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = 'ms-MY'; // Setkan bahasa Malaysia
-            recognition.start();
-
-            recognition.onstart = function() {
-                console.log("Speech recognition started...");
-            };
-
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('response').textContent = 'Anda cakap: ' + transcript;
-                processQuery(transcript);
-            };
-
-            recognition.onerror = function(event) {
-                console.log("Error details:", event.error);  // Cetak ralat di console
-                document.getElementById('response').textContent = 'Ralat dalam mendengar suara: ' + event.error;
-            };
+        // Fungsi untuk AI ucap "Hi"
+        function sayHi() {
+            const response = 'Hai! Selamat pagi.';
+            document.getElementById('response').textContent = response;
+            speak(response);
         }
 
-        // Fungsi untuk proses jawapan dari AI
-        function processQuery(query) {
-            console.log("Mendengar:", query);  // Tambah log untuk lihat apa yang didengar
-            let response = '';
+        // Fungsi untuk memberi waktu dan hari sekarang
+        function getTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const day = now.toLocaleDateString('ms-MY', { weekday: 'long' });
+            const response = `Sekarang pukul ${hours}:${minutes < 10 ? '0' + minutes : minutes}, hari ${day}.`;
+            document.getElementById('response').textContent = response;
+            speak(response);
+        }
 
-            // Periksa apa yang pengguna tanya
-            if (query.includes("Hi")) {
-                response = 'Hai! Selamat pagi.';
-            } else if (query.includes("pukul berapa")) {
-                const now = new Date();
-                const hours = now.getHours();
-                const minutes = now.getMinutes();
-                const day = now.toLocaleDateString('ms-MY', { weekday: 'long' });
-                response = `Sekarang pukul ${hours}:${minutes < 10 ? '0' + minutes : minutes}, hari ${day}.`;
-            } else if (query.includes("projek")) {
-                response = 'Projek kita hari ini adalah siapkan rekaan laman web.';
-            } else {
-                response = 'Maaf, saya tidak faham. Sila cuba lagi.';
-            }
-
-            console.log("Jawapan:", response);  // Tambah log untuk lihat jawapan yang akan diproses
-            // Sebut jawapan dengan suara (Text-to-Speech)
+        // Fungsi untuk beri tahu projek hari ini
+        function getProject() {
+            const response = 'Projek kita hari ini adalah siapkan rekaan laman web.';
+            document.getElementById('response').textContent = response;
             speak(response);
         }
 
         // Fungsi untuk AI bercakap (Text-to-Speech)
         function speak(text) {
-            console.log("AI bercakap:", text);  // Tambah log untuk lihat jika fungsi dipanggil
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'ms-MY'; // Bahasa Malaysia
             speechSynthesis.speak(utterance);
