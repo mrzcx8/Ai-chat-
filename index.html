@@ -3,57 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Bercakap</title>
-</head>
-<body>
-    <h1>Selamat datang ke AI Bercakap!</h1>
-    
-    <!-- Butang untuk setiap aksi -->
-    <button onclick="sayHi()">Hi AI</button>
-    <button onclick="getTime()">Masa Sekarang</button>
-    <button onclick="getProject()">Projek Apa Harini?</button>
-
-    <p id="response">Menunggu arahan...</p>
-
-    <script>
-        // Fungsi untuk AI ucap "Hi"
-        function sayHi() {
-            const response = 'Hai! Selamat pagi.';
-            document.getElementById('response').textContent = response;
-            speak(response);
+    <title>AI Assistant Peribadi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
-
-        // Fungsi untuk memberi waktu dan hari sekarang
-        function getTime() {
-            const now = new Date();
-            const hours = now.getHours();
-            const minutes = now.getMinutes();
-            const day = now.toLocaleDateString('ms-MY', { weekday: 'long' });
-            const response = `Sekarang pukul ${hours}:${minutes < 10 ? '0' + minutes : minutes}, hari ${day}.`;
-            document.getElementById('response').textContent = response;
-            speak(response);
+        
+        .container {
+            max-width: 800px;
+            width: 90%;
+            margin: 20px auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
-
-        // Fungsi untuk beri tahu projek hari ini
-        function getProject() {
-            const response = 'Projek kita hari ini adalah siapkan rekaan laman web.';
-            document.getElementById('response').textContent = response;
-            speak(response);
+        
+        header {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white;
+            padding: 20px;
+            text-align: center;
         }
-
-        // Fungsi untuk AI bercakap (Text-to-Speech)
-        function speak(text) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'ms-MY'; // Bahasa Malaysia
-            console.log("AI bercakap:", text);  // Log untuk pastikan fungsi dipanggil
-
-            // Periksa jika browser menyokong speech synthesis
-            if (speechSynthesis.speaking) {
-                console.log("Sedang bercakap, tunggu sebentar...");
-            } else {
-                speechSynthesis.speak(utterance);
+        
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .chat-container {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+        
+        .message {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        
+        .user-message {
+            background-color: #e3f2fd;
+            color: #333;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .ai-message {
+            background-color: #f1f0f0;
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .input-container {
+            display: flex;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #ddd;
+        }
+        
+        #user-input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+            font-size: 16px;
+        }
+        
+        #send-button {
+            background-color: #6e8efb;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 12px 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        #send-button:hover {
+            background-color: #5a7dfa;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 10px;
+            color: #777;
+            font-size: 14px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #ddd;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                width: 95%;
+                margin: 10px auto;
+            }
+            
+            .message {
+                max-width: 85%;
             }
         }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Assistant Peribadi</h1>
+        </header>
+        
+        <div class="chat-container" id="chat-container">
+            <div class="message ai-message">
+                Selamat datang! Saya adalah AI Assistant anda. Saya akan membantu bila anda bangun dan mengucapkan "hi". Saya juga boleh memberitahu masa dan hari semasa, atau projek yang anda ingin selesaikan hari ini.
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Taip mesej anda di sini..." autocomplete="off">
+            <button id="send-button">Hantar</button>
+        </div>
+    </div>
+    
+    <footer>
+        &copy; 2025 AI Assistant Peribadi | Dihost pada GitHub Pages
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatContainer = document.getElementById('chat-container');
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            
+            // Simpan projek pengguna
+            let userProjects = [];
+            
+            // Fungsi untuk menambah mesej ke dalam chat
+            function addMessage(message, isUser) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                
+                if (isUser) {
+                    messageDiv.classList.add('user-message');
+                } else {
+                    messageDiv.classList.add('ai-message');
+                }
+                
+                messageDiv.textContent = message;
+                chatContainer.appendChild(messageDiv);
+                
+                // Auto-scroll ke bawah
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+            
+            // Fungsi untuk memproses input pengguna
+            function processUserInput() {
+                const userMessage = userInput.value.trim();
+                
+                if (userMessage === '') return;
+                
+                // Tambah mesej pengguna ke chat
+                addMessage(userMessage, true);
+                
+                // Proses input dan berikan respons
+                let aiResponse = '';
+                
+                // Periksa mesej pengguna
+                const lowerCaseMessage = userMessage.toLowerCase();
+                
+                if (lowerCaseMessage.includes('hi') || lowerCaseMessage.includes('hello') || lowerCaseMessage.includes('hai')) {
+                    aiResponse = 'Hi! Selamat datang kembali. Apa khabar anda hari ini?';
+                } 
+                else if (lowerCaseMessage.includes('masa') || lowerCaseMessage.includes('pukul') || lowerCaseMessage.includes('jam')) {
+                    const now = new Date();
+                    const time = now.toLocaleTimeString('ms-MY');
+                    const day = new Intl.DateTimeFormat('ms-MY', { weekday: 'long' }).format(now);
+                    const date = now.toLocaleDateString('ms-MY');
+                    aiResponse = `Sekarang adalah ${day}, ${date}, pukul ${time}.`;
+                } 
+                else if (lowerCaseMessage.includes('projek') || lowerCaseMessage.includes('hari ini') || lowerCaseMessage.includes('harini')) {
+                    if (userProjects.length === 0) {
+                        aiResponse = 'Anda belum menetapkan sebarang projek untuk hari ini. Ingin tambah projek baru?';
+                    } else {
+                        aiResponse = 'Projek untuk hari ini adalah: ' + userProjects.join(', ');
+                    }
+                } 
+                else if (lowerCaseMessage.includes('tambah projek') || lowerCaseMessage.includes('projek baru')) {
+                    // Dapatkan nama projek (apa-apa yang ada selepas "tambah projek" atau "projek baru")
+                    const projectNameStart = lowerCaseMessage.includes('tambah projek') ? 
+                                            userMessage.indexOf('tambah projek') + 'tambah projek'.length :
+                                            userMessage.indexOf('projek baru') + 'projek baru'.length;
+                    
+                    let projectName = userMessage.substring(projectNameStart).trim();
+                    
+                    if (projectName) {
+                        userProjects.push(projectName);
+                        aiResponse = `Projek "${projectName}" telah ditambah kepada senarai anda.`;
+                        // Simpan ke localStorage
+                        localStorage.setItem('userProjects', JSON.stringify(userProjects));
+                    } else {
+                        aiResponse = 'Sila nyatakan nama projek untuk ditambah.';
+                    }
+                } 
+                else if (lowerCaseMessage.includes('padam projek') || lowerCaseMessage.includes('buang projek')) {
+                    aiResponse = 'Untuk membuang projek, sila nyatakan "padam: [nama projek]"';
+                } 
+                else if (lowerCaseMessage.includes('padam:')) {
+                    const projectToDelete = userMessage.substring(userMessage.indexOf('padam:') + 'padam:'.length).trim();
+                    const initialLength = userProjects.length;
+                    userProjects = userProjects.filter(project => project.toLowerCase() !== projectToDelete.toLowerCase());
+                    
+                    if (userProjects.length < initialLength) {
+                        aiResponse = `Projek "${projectToDelete}" telah dipadamkan.`;
+                        // Simpan ke localStorage
+                        localStorage.setItem('userProjects', JSON.stringify(userProjects));
+                    } else {
+                        aiResponse = `Projek "${projectToDelete}" tidak dijumpai dalam senarai.`;
+                    }
+                } 
+                else {
+                    aiResponse = 'Saya boleh memberi salam, memberitahu masa dan hari, atau menyenaraikan projek anda. Ada yang boleh saya bantu?';
+                }
+                
+                // Tambah respons AI ke chat
+                setTimeout(() => {
+                    addMessage(aiResponse, false);
+                }, 500);
+                
+                // Kosongkan input
+                userInput.value = '';
+            }
+            
+            // Event listeners
+            sendButton.addEventListener('click', processUserInput);
+            
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    processUserInput();
+                }
+            });
+            
+            // Muat projek dari localStorage jika ada
+            const savedProjects = localStorage.getItem('userProjects');
+            if (savedProjects) {
+                userProjects = JSON.parse(savedProjects);
+            }
+        });
     </script>
 </body>
 </html>
